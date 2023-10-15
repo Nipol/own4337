@@ -4,15 +4,25 @@ pragma solidity ^0.8.13;
 import "./Constants.sol";
 
 library UserOpLib {
-    // 1번으로 만듦
-    function opHash(UserOperation op, address EntryPointAddr) private pure returns (bytes32 h) {
+    /**
+     * @notice  Generate a unique hash for an Operation based on a given `UserOperation` structure, 
+     *          `Entrypoint` address, and `chainid`.
+     * @param   op              UserOperation struct
+     * @param   EntryPointAddr  Entrypoint Contract Address
+     * @return  h               Unique UserOperation hash.
+     */
+    function opHash(UserOperation calldata op, address EntryPointAddr) internal view returns (bytes32 h) {
+        // stored chainid
         uint256 chainId;
 
+        // load chainid
         assembly {
-            chainId := chainId
+            chainId := chainid()
         }
 
+        // hashing
         h = keccak256(
+            // concat data without signature(Too deep. use viaIr)
             abi.encodePacked(
                 chainId,
                 EntryPointAddr,
@@ -31,11 +41,11 @@ library UserOpLib {
     }
 
     // 2번으로 만듦
-    function validateOpHash(UserOperation op, address EntryPointAddr) private pure returns (address) {
+    function validateUserOp(UserOperation calldata op, address EntryPointAddr) internal view returns (address) {
         uint256 chainId;
 
         assembly {
-            chainId := chainId
+            chainId := chainid()
         }
 
         bytes32 h = keccak256(
@@ -54,7 +64,5 @@ library UserOpLib {
                 op.paymasterAndData
             )
         );
-
-
     }
 }
