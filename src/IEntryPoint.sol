@@ -46,4 +46,6 @@ interface IEntryPoint {
         external;
 
     function simulateValidation(UserOperation calldata userOp) external;
+
+    function getNonce(address sender, uint192 key) external view returns (uint256 nonce);
 }

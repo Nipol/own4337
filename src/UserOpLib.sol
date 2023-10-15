@@ -5,7 +5,7 @@ import "./Constants.sol";
 
 library UserOpLib {
     /**
-     * @notice  Generate a unique hash for an Operation based on a given `UserOperation` structure, 
+     * @notice  Generate a unique hash for an Operation based on a given `UserOperation` structure,
      *          `Entrypoint` address, and `chainid`.
      * @param   op              UserOperation struct
      * @param   EntryPointAddr  Entrypoint Contract Address
