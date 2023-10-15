@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+            // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
 import "./Constants.sol";
@@ -8,6 +8,12 @@ import "./IEntryPoint.sol";
 import "./IAccount.sol";
 
 contract Account is IAccount {
+    mapping(address => bool) public owners;
+
+    constructor(address anOwner) {
+        owners[anOwner] = true;
+    }
+
     function validateUserOp(UserOperation calldata userOp, bytes32 userOpHash, uint256 missingAccountFunds)
         external
         returns (uint256 validationData)
@@ -24,7 +30,7 @@ contract Account is IAccount {
         bytes32 r;
         bytes32 s;
 
-        if (userOp.signature.length != 65) revert();
+        if (userOp.signature.length != 65) return 1;
 
         // for easy accesible.
         bytes calldata signature = userOp.signature;
@@ -44,7 +50,7 @@ contract Account is IAccount {
             v := mload(add(mload(0x40), 0x40))
         }
 
-        address recovered = ecrecover(userOpHash, v, r, s);
+        if(!owners[ecrecover(userOpHash, v, r, s)]) return 1;
 
         // packing authorizer(0 for valid signature, 1 to mark signature failure.
         // Otherwise, an address of an authorizer contract. This ERC defines “signature aggregator” as authorizer.),
