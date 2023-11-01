@@ -11,7 +11,7 @@ library UserOpLib {
      * @param   EntryPointAddr  Entrypoint Contract Address
      * @return  h               Unique UserOperation hash.
      */
-    function opHash(UserOperation calldata op, address EntryPointAddr) internal view returns (bytes32 h) {
+    function hash(UserOperation calldata op, address EntryPointAddr) internal view returns (bytes32 h) {
         // stored chainid
         uint256 chainId;
 
@@ -20,49 +20,46 @@ library UserOpLib {
             chainId := chainid()
         }
 
-        // hashing
         h = keccak256(
-            // concat data without signature(Too deep. use viaIr)
-            abi.encodePacked(
-                chainId,
+            abi.encode(
+                keccak256(
+                    abi.encode(
+                        op.sender,
+                        op.nonce,
+                        keccak256(op.initCode),
+                        keccak256(op.callData),
+                        op.callGasLimit,
+                        op.verificationGasLimit,
+                        op.preVerificationGas,
+                        op.maxFeePerGas,
+                        op.maxPriorityFeePerGas,
+                        keccak256(op.paymasterAndData)
+                    )
+                ),
                 EntryPointAddr,
-                op.sender,
-                op.nonce,
-                op.initCode,
-                op.callData,
-                op.callGasLimit,
-                op.verificationGasLimit,
-                op.preVerificationGas,
-                op.maxFeePerGas,
-                op.maxPriorityFeePerGas,
-                op.paymasterAndData
+                chainId
             )
         );
+        // assembly {
+        //     mstore(0x00, "\x19Ethereum Signed Message:\n32")
+        //     mstore(0x1c, h)
+        //     h := keccak256(0x00, 0x3c)
+        // }
     }
 
-    // 2번으로 만듦
-    function validateUserOp(UserOperation calldata op, address EntryPointAddr) internal view returns (address) {
-        uint256 chainId;
+    /**
+     * @notice  Executes the given `UserOperation` as a `call`.
+     * @dev     Later, we'll need to get the value from calldata and use it directly.
+     * @param   op              UserOperation struct
+     * @return  success         Success or failure
+     */
+    function call(UserOperation calldata op) internal returns (bool success) {
+        address sender = op.sender;
+        bytes memory data = op.callData;
+        uint256 callGasLimit = op.callGasLimit;
 
         assembly {
-            chainId := chainid()
+            success := call(callGasLimit, sender, 0, add(data, 0x20), mload(data), 0, 0)
         }
-
-        bytes32 h = keccak256(
-            abi.encodePacked(
-                chainId,
-                EntryPointAddr,
-                op.sender,
-                op.nonce,
-                op.initCode,
-                op.callData,
-                op.callGasLimit,
-                op.verificationGasLimit,
-                op.preVerificationGas,
-                op.maxFeePerGas,
-                op.maxPriorityFeePerGas,
-                op.paymasterAndData
-            )
-        );
     }
 }

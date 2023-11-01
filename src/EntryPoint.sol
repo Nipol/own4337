@@ -4,7 +4,7 @@ pragma solidity ^0.8.13;
 import "./Constants.sol";
 import "./UserOpLib.sol";
 import "./IEntryPoint.sol";
-import "./IAccount.sol";
+import "./IAA.sol";
 
 contract EntryPoint is IEntryPoint {
     using UserOpLib for UserOperation;
@@ -12,10 +12,10 @@ contract EntryPoint is IEntryPoint {
     mapping(address => mapping(uint192 => uint64)) sequences;
 
     function handleOps(UserOperation[] calldata ops, address payable beneficiary) external {
-        for(uint256 i; i < ops.length; ++i) {
+        for (uint256 i; i < ops.length; ++i) {
             // TODO: sender is already deployed or sender is zero and valued initcode.
             // we need factory.
-            IAccount(ops[i].sender).validateUserOp(ops[i], ops[i].opHash(address(this)), 0);
+            IAA(ops[i].sender).validateUserOp(ops[i], ops[i].hash(address(this)), 0);
         }
     }
 
